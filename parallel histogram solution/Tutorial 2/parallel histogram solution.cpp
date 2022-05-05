@@ -54,18 +54,23 @@ int main(int argc, char **argv) {
 			std::cout << "Build Log:\t " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(context.getInfo<CL_CONTEXT_DEVICES>()[0]) << std::endl;
 			throw err;
 		}
-		cl::Buffer dev_image_input(context, CL_MEM_READ_ONLY, image_input.size());
-		cl::Buffer dev_image_output(context, CL_MEM_READ_WRITE, image_input.size());
-		queue.enqueueWriteBuffer(dev_image_input, CL_TRUE, 0, image_input.size(), &image_input.data()[0]);
+		std::vector<int> newVector(256);
+		cl::Buffer histInput(context, CL_MEM_READ_ONLY, sizeof(int));
+		cl::Buffer imageInput(context, CL_MEM_READ_ONLY, image_input.size());
+		cl::Buffer imageOutput(context, CL_MEM_READ_WRITE, image_input.size());
+		queue.enqueueWriteBuffer(imageInput, CL_TRUE, 0, image_input.size(), &image_input.data()[0]);
 		cl::Kernel kernel_1 = cl::Kernel(program, "hist_simple");
-		kernel_1.setArg(0, dev_image_input);
+		kernel_1.setArg(0, imageInput);
+		kernel_1.setArg(1, histInput);
+		queue.enqueueFillBuffer()
+
 		
 
 
 		
 		
 		vector<unsigned char> output_buffer(image_input.size());
-		queue.enqueueReadBuffer(dev_image_output, CL_TRUE, 0, output_buffer.size(), &output_buffer.data()[0]);
+		queue.enqueueReadBuffer(imageOutput, CL_TRUE, 0, output_buffer.size(), &output_buffer.data()[0]);
 		CImg<unsigned char> output_image(output_buffer.data(), image_input.width(), image_input.height(), image_input.depth(), image_input.spectrum());
 		CImgDisplay disp_output(output_image, "output");
 		while (!disp_input.is_closed() && !disp_output.is_closed()
